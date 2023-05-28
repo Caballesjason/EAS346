@@ -1,0 +1,94 @@
+---
+title: "Barista Efficiency"
+author: "Jason Caballes"
+date: "March 25, 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Motivation
+Coffee. It’s one of the most consumed drinks around the globe. From college students grinding on their studies, to high level CEOs managing their businesses, coffee is a drink that people find essential. In these busy times, many people do not have the time to make their own coffee, which leaves them to buy their coffee in cafes.
+
+The goal of this analysis is to analyze an imaginary cafe chain and to answer two questions. The first question is which baristas are actually making good coffee? The second question will be which cafes are able to sell the most coffee? We will answer these questions by tracking their sales based on two categories. The first category is sales made by each individual employee. The second category is to separate the employees by café location and see how the total sales of each café compare. 
+
+## About The Data
+Two datasets taken from kaggle are being used.
+
+#### Staff.csv
+This data set contains employee numbers, start dates, location of employment assigned by letters A-F, and finally, position types. All positions that are not baristas (all people who don't actually make the coffee) were removed.
+
+#### Receipts.csv
+This data set shows each transaction of coffee, detailing which barista made the order, where the order was made, time the transaction occurred, type of coffee purchased, and size of coffee purchased.
+
+Both datasets were cleaned to only show locations of of each employee, employee number, and sales. Both datasets were also put into wide format for analysis.
+
+
+```{r}
+library(readr)
+library(ggplot2)
+library(tidyverse)
+library(scales)
+
+PD <- read.csv("My Clean Data/Pie Data.csv")
+BD <- read.csv("My Clean data/Bar Data.csv")
+
+# Removing weird columns
+PD <- subset(PD, select = -c(X))
+BD <- subset(BD, select = -c(X))
+
+# Changing column names
+PD <- PD %>% 
+            rename( Location = Var1, Sales = Freq)
+
+BD <- BD %>% 
+            rename(Location = location, "Staff ID" = staff_id, "Sales ($)" = Freq)
+
+# Change all numerics to factors (Excluding Sales)
+BD$`Staff ID` <- as.factor(BD$`Staff ID`)
+BD$`Location` <- as.factor(BD$`Location`)
+PD$Location <- as.factor(PD$Location)
+```
+```{r}
+head(BD)
+head(PD)
+```
+
+## Analysis
+This bar chart shows the amount of coffee in cups that each barista sold from when they started to now. The colors represent which location they work at. Based on the graph, we can make the claim that baristas 13, 18, and 19 all sell significantly less coffee than the other baristas in their respective staffs. You see this by seeing how low the bars are for those baristas in comparison to their peers. For example, barista 13 has sold roughly 100 cups of coffee whereas baristas 12, 14, and 15 have sold at least 2000 or more.  Overall, we can see that baristas in locations A and E all serve around the same amount of coffee. Through a customer’s perspective, you may want to go to coffee shops where all baristas make a lot of coffee. A prime example would be location E. This is because each barista makes roughly around the same coffee which indicates that their experience levels are all roughly the same. Hence, you will get the same quality cup of coffee consistently. Nobody wants to get unexpected bad cup of coffee.
+
+Some things that have been considered but not compensated for are employee start date and hours worked per week. Some baristas may work full time while others may work part time. Along with that, some baristas may have worked much longer in the cafes than others. This may explain why there are large differences in number of cups of coffee served. Another thing to take into consideration is the quantity of baristas working at the same time. With more employees working at the same time, the less chances each employee has to make coffee for customers.
+
+
+```{r BD, echo=FALSE, fig.align = 'center'}
+ggplot(BD, aes(x=`Staff ID`, y = `Sales ($)`,fill = Location)) + geom_bar(stat="identity") +  labs(title="Sales Made By Each Barista", x="Staff ID Number",
+                                                                                        y = "Sales In Cups of Coffee") +  theme(plot.title = element_text(hjust = 0.5,
+                                                                                                                                   size= 20, face="bold"))
+```
+
+From looking at the pie chart, we can make the claim that locations F and B earn the bulk of the revenue for the café chain. We can see that the total percentage of cups sold for these two is 57.28% which is more than half of total sales. Among all of the café chains, we also make the claim that location F is the most popular café, since Location F has the highest sales among each location. From looking at the bar graph, we can predict that some baristas work in pairs, since in location F, baristas 42 and 45 sell roughly the same amount of coffee. Likewise, baristas 43 and 44 also sell roughly the same amount of coffee. You see this trend occurring in location C as well. Maybe working in pairs helps baristas work more efficiently? Given that location F earns the most money and their baristas sell more cups of coffee than any other location, this is a plausible hypothesis.
+
+Some drawbacks we must consider are that given the data, we don’t know the specific locations of the cafes, since letters were given for each café, but no locations. Maybe some locations are in a very populated city where as other locations are located in suburban or rural areas, which are typically less populated. Maybe there is high crime rates in certain locations, prompting less customers to go there. Another thing to consider when explaining the differences in sales is competition. Perhaps there are lots of cafes in locations C and D, which prompts them to have less sales due to customers having more variety of coffee to choose from. On the other hand, this may signify that the coffee sold there is poorer in quality than our other locations, suggesting that the baristas there are less experienced or poorly trained.
+
+
+
+
+```{r,PD, echo=FALSE, fig.align = 'center'}
+PC <- ggplot(PD, aes(x='', y =Sales, fill = Location)) + geom_bar(width = 1, stat = "identity") + 
+  labs(title="Total Sales For Each Coffee Shop", x='', y='') + 
+  theme(plot.title = element_text(hjust = .5, face="bold", size = 20), axis.text = element_blank(), axis.title = element_blank(),
+        panel.background = element_blank())
+
+Pie_Chart <- PC + coord_polar("y", start=0) + geom_text(aes(label = paste0(round((Sales/sum(Sales))*100, digits = 2), "%" ), x=1.3), 
+position = position_stack(vjust = .55))
+Pie_Chart
+```
+
+
+## Conclusion
+Coming back to the two questions we wanted to solve, based on the graphs, we can see that baristas 12, 42, and 45 make the significantly more coffee than their peers, indicating that they make better quality coffee. Location F makes the most money selling coffee, this could be because the two highest selling baristas both work at that café.
+
+Some drawbacks to consider are the ones mentioned in the analysis such as specific locations of cafes, start dates of employees, hours worked per week of employees, crime rate, population, and competition. Another thing to note is wages. Perhaps the high selling cafes have higher paying wages. This may give incentive for baristas to work longer hours to earn more money.
+
+This analysis may help managers allocate resources to cafes in need of them. For example, management can improve training for location A to possibly raise sales. Perhaps management can also fire barista 13, since location B makes a considerable amount of sales, with barista 13 contributing little to it. Firing barista 13 will save a little money for the barista chain. The bar graphs really support the argument that your location may really determine how good your coffee will be. If you live near location E, you can expect consistent coffee, where as if you live near location B, you can expect a great tasting coffee if it was made by barista 12. If you live near location A, you should probably make your coffee at home.
